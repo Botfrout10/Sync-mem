@@ -40,12 +40,13 @@ void sigint_handler(int signum)
         std::cerr<<"Erreur shmctl";
         exit(4);
     }
-    std::cout<<"La SHM n°: "<<shmid<<"est liberée"<<std::endl;
+    std::cout<<"La SHM n°: "<<shmid<<" est liberée"<<std::endl;
+    exit(0);
 }
 
 void sigcont_handler(int signum)
 {
-        char buffer[NBR_OCTET]={};
+        char buffer[NBR_OCTET];
         // Lire le pid client depuis la SHM
         std::memcpy(&client_pid, out, sizeof(int));
         std::cout<<"pid du client:"<<client_pid<<std::endl;
