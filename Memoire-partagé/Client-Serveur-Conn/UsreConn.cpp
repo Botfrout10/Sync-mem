@@ -12,10 +12,14 @@
 */
 
 #include <iostream>
-#include <system>
+#include <cstdlib>
 #include <sys/shm.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/stat.h>
+#include <cstring>
+
+
 
 #include "configConn.hpp"
 
@@ -28,9 +32,10 @@
 
 using namespace std;
 
-pid_t pid_serveur=0;pid_client= getpid();
+pid_t pid_serveur=0,pid_client= getpid();
 bool connected= false;
 char *out={}; // SHM
+Choix choix;
 
 void afficher_menu()
 {
@@ -56,7 +61,7 @@ int rejoindre_serveur()
     }
     
     out=(char*)shmat(shmid, NULL, 0);
-    if(out == -1)
+    if((int*)out == (int*)-1)
     {
         cerr<<"Erreur shmgat:"<<errno<<std::endl;
         return 2;
@@ -71,7 +76,8 @@ int rejoindre_serveur()
     // Ecrire le pid_client dans la SHM.
     memcpy(out+sizeof(int),&pid_client,sizeof(int));
     // Ecrire le choix dans la SHM.
-    memcpy(out+(sizeof(int)*2),&Choix::REJONDRE_SERV,sizeof(int));
+    choix= Choix::REJONDRE_SERV;
+    memcpy(out+(sizeof(int)*2),&choix,sizeof(int));
 
     cout<<"Entrez votre nom: ";
     cin>>nom;
@@ -92,7 +98,8 @@ int envoyer_message()
     // Ecrire le pid_client dans la SHM.
     memcpy(out+Memory::PID_CLIENT,&pid_client,sizeof(int));
     // Ecrire le choix dans la SHM.
-    memcpy(out+Memory::CHOIX,&Choix::ENVOYER_MSG,sizeof(int));
+    choix= Choix::ENVOYER_MSG;
+    memcpy(out+Memory::CHOIX,&choix,sizeof(int));
     // Ecrire le message dans la SHM.
     char msg[MAX_SIZE_MSG];
     cout<<"Entrez votre message: ";
@@ -109,7 +116,8 @@ int quitter_serveur()
     // Ecrire le pid_client dans la SHM.
     memcpy(out+Memory::PID_CLIENT,&pid_client,sizeof(int));
     // Ecrire le choix dans la SHM.
-    memcpy(out+Memory::CHOIX,&Choix::QUITTER_SERV,sizeof(int));
+    choix= Choix::QUITTER_SERV;
+    memcpy(out+Memory::CHOIX,&choix,sizeof(int));
     kill(pid_serveur, SIGCONT);
     connected= false;
     return 0;
@@ -120,7 +128,7 @@ int quitter_serveur()
 void sigcont_handler(int signum)
 {
     if(!connected || pid_serveur == 0)
-        return 1;
+        return;
     int choix;
     memcpy(&choix,out+Memory::CHOIX,sizeof(int));
     if(choix != Choix::QUITTER_SERV)
@@ -149,21 +157,21 @@ int main()
                 if(rejoindre_serveur() != 0)
                 {
                     cerr<<"Erreur dans la connection au serveur!!"<<endl;
-                    return;
+                    return 1;
                 }
                 break;
             case 2:
                 if(envoyer_message() != 0)
                 {
                     cerr<<"Erreur lors de l'envoye du message!!"<<endl;
-                    return;
+                    return 2;
                 }
                 break;
             case 3:
                 if(quitter_serveur() != 0)
                 {
                     cerr<<"Erreur serveur n'est plus disponible!!"<<endl;
-                    return;
+                    return 3;
                 }
                 break;
             default:
