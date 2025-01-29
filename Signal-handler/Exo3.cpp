@@ -23,7 +23,7 @@ void sigcont_handler(int signum)
 
 void sigstp_handler(int signum)
 {
-    std::cout<<"Stope:"<<getpid()<<'\n';
+    std::cout<<"Stop:"<<getpid()<<'\n';
 }
 
 int main()
