@@ -86,6 +86,7 @@ int rejoindre_serveur()
 
     memcpy(out+(sizeof(int)*3),&nom,sizeof(char)*MAX_SIZE);
     memcpy(out+(sizeof(int)*3)+sizeof(char)*MAX_SIZE,&prenom,sizeof(char)*MAX_SIZE);
+
     kill(pid_serveur, SIGCONT);
     return 0;
 }
@@ -101,10 +102,12 @@ int envoyer_message()
     choix= Choix::ENVOYER_MSG;
     memcpy(out+Memory::CHOIX,&choix,sizeof(int));
     // Ecrire le message dans la SHM.
-    char msg[MAX_SIZE_MSG];
+    string msg={};
     cout<<"Entrez votre message: ";
-    cin>>msg;
-    memcpy(out+Memory::MSG,&msg,sizeof(char)*MAX_SIZE_MSG);
+    cin.ignore();
+    getline(cin, msg);
+    memcpy(out+Memory::MSG,msg.c_str(),sizeof(char)*MAX_SIZE_MSG);
+
     kill(pid_serveur, SIGCONT);
     return 0;
 }
@@ -118,6 +121,7 @@ int quitter_serveur()
     // Ecrire le choix dans la SHM.
     choix= Choix::QUITTER_SERV;
     memcpy(out+Memory::CHOIX,&choix,sizeof(int));
+
     kill(pid_serveur, SIGCONT);
     connected= false;
     return 0;
