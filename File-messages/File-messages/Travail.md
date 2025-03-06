@@ -9,3 +9,7 @@ serveur relai.
     4. Demander une déconnexion du serveur lors de sa fermeture.
 - Remarque : On programmera ce chat en C++. L’identification des clients au niveau
 du serveur sera géré à l’aide d’une map.
+
+
+## 
+- Quand le client envoye un message le serveur change le client 
